@@ -66,8 +66,42 @@ class Product : public Function {
     }
 };
 
-class Quotient: Function {
+class Quotient : public Function {
+    std::shared_ptr<Function> top;
+    std::shared_ptr<Function> bottom;
+    public:
+    Quotient(std::shared_ptr<Function> f, std::shared_ptr<Function> g) : top(f), bottom(g){}
 
+    double evaluate(double x) const override{
+        if(bottom->evaluate(x) == 0){
+            throw std::runtime_error("Error divide by 0");
+        }
+        return top->evaluate(x) / bottom->evaluate(x);
+
+    }
+
+    std::shared_ptr<Function> derivative() const override{
+        return std::make_shared<Quotient>(
+            std::make_shared<Difference>(std::make_shared<Product>(top->derivative(), bottom)
+            , std::make_shared<Product>(top, bottom->derivative())),
+             std::make_shared<Polynomial>(bottom, 2.0));
+    
+    }
+};
+
+class AbsVal : public Function {
+    std::shared_ptr<Function> argument;
+
+    public:
+    AbsVal(std::shared_ptr<Function> arg) : argument(arg) {}
+
+    double evaluate(double x) const override{
+        return std::abs(x);
+    }
+
+    std::shared_ptr<Function> derivative(){
+        throw std::runtime_error("Absolute value has no derivative");
+    }
 };
 
 // Class for constant functions
@@ -85,20 +119,24 @@ public:
     }
 };
 
-// Class for polynomial functions (e.g., 5x^3)
+// Class for polynomial functions 
 class Polynomial : public Function {
-    double coefficient;
+    std::shared_ptr<Function> coefficient;
     double exponent;
 public:
-    Polynomial(double coef, double exp) : coefficient(coef), exponent(exp) {}
+    Polynomial(std::shared_ptr<Function> coef, double exp) : coefficient(coef), exponent(exp) {}
 
     double evaluate(double x) const override {
-        return coefficient * std::pow(x, exponent);
+        return std::pow(coefficient->evaluate(x), exponent);
     }
-
+    //Derivative will be of the form f'(x) * A *(f(x))^(A-1)
     std::shared_ptr<Function> derivative() const override {
         if (exponent == 0) return std::make_shared<Constant>(0);  // Derivative of constant
-        return std::make_shared<Polynomial>(coefficient * exponent, exponent - 1);
+        return std::make_shared<Product>(                                   //Af'(x)f(x)^(A-1)
+            std::make_shared<Polynomial>(                                  //Af(x)^(A-1)
+            std::make_shared<Product>(                                                                  
+                std::make_shared<Product>(coefficient, std::make_shared<Constant>(exponent))), exponent - 1), 
+                coefficient->derivative());                                 //f'(x)
     }
 };
 
@@ -113,7 +151,7 @@ public:
     }
 
     std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(std::make_shared<Cosine>(argument), argument->derivative());  // Placeholder, need product rule with argument
+        return std::make_shared<Product>(std::make_shared<Cosine>(argument), argument->derivative());  // sin(f(x)) * f'(x)
     }
 };
 
@@ -155,7 +193,7 @@ class Secant : public Function{
         Secant(std::shared_ptr<Function> arg) : argument(arg) {}
 
         double evaluate (double x) const override {
-            return std::make_shared<Polynomial>(std::make_shared<Cosine>(argument->evaluate(x)), -1)->evaluate(x);
+            return std::make_shared<Quotient>(1, std::make_shared<Cosine>(argument->evaluate(x)))->evaluate(x);
         }
 
         std::shared_ptr<Function> derivative() const override {
@@ -171,11 +209,14 @@ class Cosecant : public Function{
         Cosecant(std::shared_ptr<Function> arg) : argument(arg) {}
 
         double evaluate (double x) const override {
-            return std::make_shared<Polynomial>(std::make_shared<Sine>(argument->evaluate(x)), -1.0)->evaluate(x);
+            return std::make_shared<Quotient>(1, std::make_shared<Sine>(argument->evaluate(x)))->evaluate(x);
         }
 
         std::shared_ptr<Function> derivative() const override {
-            return std::make_shared<Polynomial>(1,0);
+            return std::make_shared<Product>(std::make_shared<Constant>(-1.0),
+            std::make_shared<Product>(
+                std::make_shared<Product>(std::make_shared<Cosecant>(argument), std::make_shared<Cotangent>(argument)),
+                argument->derivative()));
         }
 };
 //cotangent
@@ -185,11 +226,12 @@ class Cotangent : public Function{
         Cotangent(std::shared_ptr<Function> arg) : argument(arg) {}
 
         double evaluate (double x) const override {
-            return std::make_shared<Polynomial>(std::make_shared<Tangent>(argument->evaluate(x)), -1.0)->evaluate(x);
+            return std::make_shared<Quotient>(1, std::make_shared<Tangent>(argument->evaluate(x)))->evaluate(x);
         }
 
         std::shared_ptr<Function> derivative() const override {
-            return std::make_shared<Polynomial>(std::make_shared<Product>(std::make_shared<Cosecant>, argument->derivative()),2.0);
+            return std::make_shared<Product>(std::make_shared<Constant>(-1.0), 
+            std::make_shared<Polynomial>(std::make_shared<Product>(std::make_shared<Cosecant>, argument->derivative()),2.0));
         }
 };
 //arcsin
@@ -199,13 +241,13 @@ class Arcsin : public Function{
         Arcsin(std::shared_ptr<Function> arg) : argument(arg) {}
 
         double evaluate (double x) const override {
-            return std::cos(argument->evaluate(x));
+            return std::asin(argument->evaluate(x));
         }
 
         std::shared_ptr<Function> derivative() const override {
             return std::make_shared<Product>(
-                std::make_shared<Polynomial>(std::make_shared<Difference>(1, 
-                std::make_shared<Polynomial>(argument), 2), (-1.0/2.0))),argument->derivative());
+                std::make_shared<Polynomial>(std::make_shared<Difference>(argument->derivative(), 
+                std::make_shared<Polynomial>(argument), 2), (-1.0/2.0)), argument->derivative());
         }
 };
 //arccos
@@ -215,25 +257,73 @@ class Arccos : public Function{
         Arccos(std::shared_ptr<Function> arg) : argument(arg) {}
 
         double evaluate (double x) const override {
-            return std::cos(argument->evaluate(x));
+            return std::acos(argument->evaluate(x));
         }
 
         std::shared_ptr<Function> derivative() const override {
-            return std::make_shared<Polynomial>(1,0);
+            return std::make_shared<Product>(std::make_shared<Constant>(-1.0), std::make_shared<Arcsin>(argument)->derivative());
         }
 };
 //arctan
-class arctan : public Function{
+class Arctan : public Function{
     std::shared_ptr<Function> argument;
     public:
-        arctan(std::shared_ptr<Function> arg) : argument(arg) {}
+        Arctan(std::shared_ptr<Function> arg) : argument(arg) {}
 
         double evaluate (double x) const override {
-            return std::cos(argument->evaluate(x));
+            return std::atan(argument->evaluate(x));
         }
 
         std::shared_ptr<Function> derivative() const override {
-            return std::make_shared<Polynomial>(1,0);
+            return std::make_shared<Quotient>(argument->derivative(),std::make_shared<Sum>(1, std::make_shared<Polynomial>(argument, 2.0)));
+        }
+};
+//arccot
+class Arccot : public Function{
+    std::shared_ptr<Function> argument;
+    public:
+        Arccot(std::shared_ptr<Function> arg) : argument(arg) {}
+
+        double evaluate (double x) const override {
+            return std::atan(std::make_shared<Quotient>(std::make_shared<Constant>(1.0), argument->evaluate(x))->evaluate(x));
+        }
+
+        std::shared_ptr<Function> derivative() const override {
+            return std::make_shared<Quotient>(std::make_shared<Product>(std::make_shared<Constant>(-1.0), argument->derivative()),
+            std::make_shared<Sum>(std::make_shared<Constant>(1.0), std::make_shared<Polynomial>(argument, 2.0)));
+        }
+};
+//arcsec
+class Arcsec : public Function{
+    std::shared_ptr<Function> argument;
+    public:
+        Arcsec(std::shared_ptr<Function> arg) : argument(arg) {}
+
+        double evaluate (double x) const override {
+            return std::acos(std::make_shared<Quotient>(std::make_shared<Constant>(1.0), argument->evaluate(x))->evaluate(x));
+        }
+
+        std::shared_ptr<Function> derivative() const override {
+            return std::make_shared<Quotient>(argument->derivative(),
+            std::make_shared<Product>(std::make_shared<AbsVal>(argument), 
+            std::make_shared<Polynomial>(
+                std::make_shared<Difference>(std::make_shared<Polynomial>(argument, 2.0), std::make_shared<Constant>(1.0)), 1.0/2.0)));
+        }
+};
+class Arccsc : public Function{
+    std::shared_ptr<Function> argument;
+    public:
+        Arccsc(std::shared_ptr<Function> arg) : argument(arg) {}
+
+        double evaluate (double x) const override {
+            return std::asin(std::make_shared<Quotient>(std::make_shared<Constant>(1.0), argument->evaluate(x))->evaluate(x));
+        }
+
+        std::shared_ptr<Function> derivative() const override {
+            return std::make_shared<Quotient>(std::make_shared<Product>(std::make_shared<Constant>(-1.0), argument->derivative()),
+             std::make_shared<Product>(std::make_shared<AbsVal>(argument), 
+            std::make_shared<Polynomial>(
+                std::make_shared<Difference>(std::make_shared<Polynomial>(argument, 2.0), std::make_shared<Constant>(1.0)), 1.0/2.0)));
         }
 };
 //sinh
@@ -243,11 +333,11 @@ class SineH : public Function{
         SineH(std::shared_ptr<Function> arg) : argument(arg) {}
 
         double evaluate (double x) const override {
-            return std::cos(argument->evaluate(x));
+            return std::sinh(argument->evaluate(x));
         }
 
         std::shared_ptr<Function> derivative() const override {
-            return std::make_shared<Polynomial>(1,0);
+            return std::make_shared<Product>(std::make_shared<CosineH>(argument), argument->derivative());
         }
 };
 //cosh
@@ -257,11 +347,11 @@ class CosineH : public Function{
         CosineH(std::shared_ptr<Function> arg) : argument(arg) {}
 
         double evaluate (double x) const override {
-            return std::cos(argument->evaluate(x));
+            return std::cosh(argument->evaluate(x));
         }
 
         std::shared_ptr<Function> derivative() const override {
-            return std::make_shared<Polynomial>(1,0);
+            return std::make_shared<Product>(std::make_shared<SineH>(argument), argument->derivative());
         }
 };
 //tanh
@@ -271,11 +361,12 @@ class TangentH : public Function{
         TangentH(std::shared_ptr<Function> arg) : argument(arg) {}
 
         double evaluate (double x) const override {
-            return std::cos(argument->evaluate(x));
+            return std::tanh(argument->evaluate(x));
         }
 
         std::shared_ptr<Function> derivative() const override {
-            return std::make_shared<Polynomial>(1,0);
+            return std::make_shared<Product>(
+                std::make_shared<Polynomial>(std::make_shared<SecantH>(argument),2.0), argument->derivative());
         }
 };
 
@@ -286,11 +377,13 @@ class SecantH : public Function{
         SecantH(std::shared_ptr<Function> arg) : argument(arg) {}
 
         double evaluate (double x) const override {
-            return std::cos(argument->evaluate(x));
+            return std::make_shared<Quotient>(1, std::make_shared<CosineH>(argument->evaluate(x)))->evaluate(x);
         }
 
         std::shared_ptr<Function> derivative() const override {
-            return std::make_shared<Polynomial>(1,0);
+            return std::make_shared<Product>(std::make_shared<Constant>(-1.0),
+            std::make_shared<Product>(argument->derivative(),
+            std::make_shared<Product>(std::make_shared<SecantH>(argument), std::make_shared<TangentH>(argument))));
         }
 };
 //csch
@@ -300,11 +393,13 @@ class CosecantH : public Function{
         CosecantH(std::shared_ptr<Function> arg) : argument(arg) {}
 
         double evaluate (double x) const override {
-            return std::cos(argument->evaluate(x));
+            return std::make_shared<Quotient>(1, std::make_shared<SineH>(argument->evaluate(x)))->evaluate(x);
         }
 
         std::shared_ptr<Function> derivative() const override {
-            return std::make_shared<Polynomial>(1,0);
+            return std::make_shared<Product>(std::make_shared<Constant>(-1.0),
+            std::make_shared<Product>(argument->derivative(),
+            std::make_shared<Product>(std::make_shared<CosecantH>(argument), std::make_shared<Cotangent>(argument))));
         }
 };
 //coth
@@ -314,38 +409,43 @@ class CotangentH : public Function{
         CotangentH(std::shared_ptr<Function> arg) : argument(arg) {}
 
         double evaluate (double x) const override {
-            return std::cos(argument->evaluate(x));
+            return std::make_shared<Quotient>(1, std::make_shared<TangentH>(argument->evaluate(x)))->evaluate(x);
         }
 
         std::shared_ptr<Function> derivative() const override {
-            return std::make_shared<Polynomial>(1,0);
+            return std::make_shared<Product>(
+                std::make_shared<Polynomial>(std::make_shared<CosecantH>(argument),2.0), 
+                std::make_shared<Product>(std::make_shared<Constant>(-1.0),argument->derivative()));
         }
 };
 
 class Logarithmic : public Function{
     std::shared_ptr<Function> argument;
+    std::shared_ptr<Function> base;
     public:
-        Logarithmic(std::shared_ptr<Function> arg) : argument(arg) {}
+        Logarithmic(std::shared_ptr<Function> arg, std::shared_ptr<Function> b) : base(b), argument(arg) {}
 
         double evaluate (double x) const override {
-            return std::cos(argument->evaluate(x));
+            return std::log(argument->evaluate(x)) / std::log(base->evaluate(x));
         }
-
+        //NOT RIGHT!!!
         std::shared_ptr<Function> derivative() const override {
-            return std::make_shared<Polynomial>(1,0);
+            return std::make_shared<Quotient>(std::make_shared<Logarithmic>(base, std::exp(1.0)), std::make_shared<Logarithmic>(argument, std::exp(1.0)))->derivative();
         }
 };
 
 class Exponential : public Function{
     std::shared_ptr<Function> argument;
+    std::shared_ptr<Function> base;
     public:
-        Exponential(std::shared_ptr<Function> arg) : argument(arg) {}
+        Exponential(std::shared_ptr<Function> a, std::shared_ptr<Function> arg) : base(a), argument(arg) {}
 
         double evaluate (double x) const override {
-            return std::cos(argument->evaluate(x));
+            return std::pow(base->evaluate(x), argument->evaluate(x));
         }
 
         std::shared_ptr<Function> derivative() const override {
-            return std::make_shared<Polynomial>(1,0);
+            return std::make_shared<Product>(std::make_shared<Exponential>(base, argument), 
+            std::make_shared<Product>(argument,std::make_shared<Logarithmic>(base))->derivative());
         }
 };
