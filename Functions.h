@@ -10,6 +10,7 @@ public:
     virtual double evaluate(double x) const = 0;   // Evaluate the function at x
     virtual std::shared_ptr<Function> derivative() const = 0;  // Return the derivative of the function
     virtual ~Function() = default;
+    virtual std::shared_ptr<Function> simplify();
 };
 
 class Sum : public Function {
@@ -430,7 +431,12 @@ class Logarithmic : public Function{
         }
         //NOT RIGHT!!!
         std::shared_ptr<Function> derivative() const override {
-            return std::make_shared<Quotient>(std::make_shared<Logarithmic>(base, std::exp(1.0)), std::make_shared<Logarithmic>(argument, std::exp(1.0)))->derivative();
+            return std::make_shared<Quotient>(
+                std::make_shared<Difference>(std::make_shared<Product>(base, argument->derivative()),
+                std::make_shared<Product>(
+                    std::make_shared<Product>(base->derivative(), argument), std::make_shared<Logarithmic>(argument, base))),
+                    std::make_shared<Product>(std::make_shared<Product>(argument, base), 
+                        std::make_shared<Logarithmic>(base, std::make_shared<Constant>(std::exp(1.0)))));
         }
 };
 
