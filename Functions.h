@@ -37,9 +37,7 @@ public:
         return value;
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Constant>(0);
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         return std::make_shared<Constant>(value);
@@ -71,9 +69,7 @@ class Variable : public Function {
         return x;
     }
 
-    std::shared_ptr<Function> derivative() const override{
-        return std::make_shared<Constant>(1.0);
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify(){
         return std::make_shared<Variable>(name);
@@ -105,10 +101,7 @@ class AbsVal : public Function {
         return std::abs(x);
     }
 
-    std::shared_ptr<Function> derivative(){
-        return std::make_shared<Quotient>(std::make_shared<Product>(argument, argument->derivative()), 
-            std::make_shared<AbsVal>(argument));
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify(){
         return std::make_shared<AbsVal>(argument->simplify());
@@ -145,14 +138,7 @@ public:
         return std::pow(coefficient->evaluate(x), exponent);
     }
     //Derivative will be of the form f'(x) * A *(f(x))^(A-1)
-    std::shared_ptr<Function> derivative() const override {
-        if (exponent == 0) return std::make_shared<Constant>(0);  // Derivative of constant
-        return std::make_shared<Product>(                                   //Af'(x)f(x)^(A-1)
-            std::make_shared<Polynomial>(                                  //Af(x)^(A-1)
-            std::make_shared<Product>(                                                                  
-                std::make_shared<Product>(coefficient, std::make_shared<Constant>(exponent))), exponent - 1), 
-                coefficient->derivative());                                 //f'(x)
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(coefficient.get())){
@@ -191,14 +177,7 @@ class Logarithmic : public Function{
         return std::log(argument->evaluate(x)) / std::log(base->evaluate(x));
     }
     
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Quotient>(
-            std::make_shared<Difference>(std::make_shared<Product>(base, argument->derivative()),
-            std::make_shared<Product>(
-                std::make_shared<Product>(base->derivative(), argument), std::make_shared<Logarithmic>(base, argument))),
-                std::make_shared<Product>(std::make_shared<Product>(base, argument), 
-                    std::make_shared<Logarithmic>(std::make_shared<Constant>(std::exp(1.0)), base)));
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(base->isEqual(argument)) return std::make_shared<Constant>(1.0);
@@ -244,10 +223,7 @@ class Exponential : public Function{
         return std::pow(base->evaluate(x), argument->evaluate(x));
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(std::make_shared<Exponential>(base, argument), 
-        std::make_shared<Product>(argument,std::make_shared<Logarithmic>(base))->derivative());
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         auto const1 = dynamic_cast<Constant*>(base.get());

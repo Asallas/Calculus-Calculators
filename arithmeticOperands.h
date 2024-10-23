@@ -21,9 +21,8 @@ class Sum : public Function {
         return left->evaluate(x) + right->evaluate(x);
     }
 
-    std::shared_ptr<Function> derivative() const override{
-        return std::make_shared<Sum>(left->derivative(), right->derivative());
-    }
+    std::shared_ptr<Function> derivative() const override;
+
     //Add Trig identity checks
     std::shared_ptr<Function> simplify() const override{
         auto simplifiedLeft = left->simplify();
@@ -80,9 +79,7 @@ class Difference : public Function{
         return left->evaluate(x) - right->evaluate(x);
     }
 
-    std::shared_ptr<Function> derivative() const override{
-        return std::make_shared<Difference>(left->derivative(), right->derivative());
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         auto simplifiedLeft = left->simplify();
@@ -133,12 +130,7 @@ class Product : public Function {
         return left->evaluate(x) * right->evaluate(x);
     }
 
-    std::shared_ptr<Function> derivative() const override{
-        return std::make_shared<Sum>(
-            std::make_shared<Product>(left -> derivative(), right),
-            std::make_shared<Product>(left, right->derivative())
-        );
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         auto simplifiedLeft = left->simplify();
@@ -198,13 +190,7 @@ class Quotient : public Function {
 
     }
 
-    std::shared_ptr<Function> derivative() const override{
-        return std::make_shared<Quotient>(
-            std::make_shared<Difference>(std::make_shared<Product>(right->derivative(), left)
-            , std::make_shared<Product>(right, left->derivative())),
-             std::make_shared<Polynomial>(left, 2.0));
-    
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         auto simplifiedTop = right->simplify();

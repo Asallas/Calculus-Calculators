@@ -24,9 +24,7 @@ class Sine : public Function {
         return val;
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(std::make_shared<Cosine>(argument), argument->derivative());  // sin(f(x)) * f'(x)
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -69,11 +67,7 @@ class Cosine : public Function{
         return val;
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(
-            std::make_shared<Product>(std::make_shared<Constant>(-1.0), 
-                std::make_shared<Product>(std::make_shared<Sine>(argument), argument->derivative())));
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -113,11 +107,7 @@ class Tangent : public Function{
         return val;
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(
-            std::make_shared<Polynomial>(std::make_shared<Secant>(argument), 2.0), 
-            argument->derivative());
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -157,11 +147,7 @@ class Secant : public Function{
         return 1.0 / val;
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(
-            std::make_shared<Product>(std::make_shared<Secant>(argument), std::make_shared<Tangent>(argument))
-            ,argument->derivative());
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -199,12 +185,7 @@ class Cosecant : public Function{
         return 1.0 / aVal;
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(std::make_shared<Constant>(-1.0),
-        std::make_shared<Product>(
-            std::make_shared<Product>(std::make_shared<Cosecant>(argument), std::make_shared<Cotangent>(argument)),
-            argument->derivative()));
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     bool isEqual(std::shared_ptr<Function>& other){
         auto otherTrig = dynamic_cast<Cosecant*>(other.get());
@@ -235,10 +216,7 @@ class Cotangent : public Function{
         return 1.0 / aVal;
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(std::make_shared<Constant>(-1.0), 
-        std::make_shared<Polynomial>(std::make_shared<Product>(std::make_shared<Cosecant>, argument->derivative()),2.0));
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -271,11 +249,7 @@ class Arcsin : public Function{
         return std::asin(argument->evaluate(x));
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(
-            std::make_shared<Polynomial>(std::make_shared<Difference>(argument->derivative(), 
-            std::make_shared<Polynomial>(argument), 2.0), (-1.0/2.0)), argument->derivative());
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -308,9 +282,7 @@ class Arccos : public Function{
         return std::acos(argument->evaluate(x));
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(std::make_shared<Constant>(-1.0), std::make_shared<Arcsin>(argument)->derivative());
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -343,10 +315,7 @@ class Arctan : public Function{
         return std::atan(argument->evaluate(x));
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Quotient>(argument->derivative(),
-            std::make_shared<Sum>(std::make_shared<Constant>(1.0), std::make_shared<Polynomial>(argument, 2.0)));
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -383,10 +352,7 @@ class Arccot : public Function{
         return std::atan(1.0 / val);
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Quotient>(std::make_shared<Product>(std::make_shared<Constant>(-1.0), argument->derivative()),
-        std::make_shared<Sum>(std::make_shared<Constant>(1.0), std::make_shared<Polynomial>(argument, 2.0)));
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -423,12 +389,7 @@ class Arcsec : public Function{
         return std::acos(1.0 / val);
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Quotient>(argument->derivative(),
-        std::make_shared<Product>(std::make_shared<AbsVal>(argument), 
-        std::make_shared<Polynomial>(
-            std::make_shared<Difference>(std::make_shared<Polynomial>(argument, 2.0), std::make_shared<Constant>(1.0)), 1.0/2.0)));
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -464,12 +425,7 @@ class Arccsc : public Function{
         return std::asin(1.0 / val);
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Quotient>(std::make_shared<Product>(std::make_shared<Constant>(-1.0), argument->derivative()),
-         std::make_shared<Product>(std::make_shared<AbsVal>(argument), 
-        std::make_shared<Polynomial>(
-            std::make_shared<Difference>(std::make_shared<Polynomial>(argument, 2.0), std::make_shared<Constant>(1.0)), 1.0/2.0)));
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -502,9 +458,7 @@ class SineH : public Function{
         return std::sinh(argument->evaluate(x));
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(std::make_shared<CosineH>(argument), argument->derivative());
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -537,9 +491,7 @@ class CosineH : public Function{
         return std::cosh(argument->evaluate(x));
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(std::make_shared<SineH>(argument), argument->derivative());
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -572,10 +524,7 @@ class TangentH : public Function{
         return std::tanh(argument->evaluate(x));
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(
-            std::make_shared<Polynomial>(std::make_shared<SecantH>(argument),2.0), argument->derivative());
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -614,11 +563,7 @@ class SecantH : public Function{
         return 1.0 / val;
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(std::make_shared<Constant>(-1.0),
-        std::make_shared<Product>(argument->derivative(),
-        std::make_shared<Product>(std::make_shared<SecantH>(argument), std::make_shared<TangentH>(argument))));
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -656,11 +601,7 @@ class CosecantH : public Function{
         return 1.0 / val;
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(std::make_shared<Constant>(-1.0),
-        std::make_shared<Product>(argument->derivative(),
-        std::make_shared<Product>(std::make_shared<CosecantH>(argument), std::make_shared<Cotangent>(argument))));
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
@@ -698,11 +639,7 @@ class CotangentH : public Function{
         return 1.0 / val;
     }
 
-    std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Product>(
-            std::make_shared<Polynomial>(std::make_shared<CosecantH>(argument),2.0), 
-            std::make_shared<Product>(std::make_shared<Constant>(-1.0),argument->derivative()));
-    }
+    std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
