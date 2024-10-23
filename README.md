@@ -5,4 +5,5 @@ List of supported functions:
 - Logarithms
 - Exponential
 - Absolute value
-Stil needs to be updated to support simplification and eventually integration
+
+Still needs to be updated to support simplification and eventually integration
