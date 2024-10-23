@@ -20,6 +20,7 @@ public:
     virtual std::shared_ptr<Function> derivative() const = 0;  // Return the derivative of the function
     virtual std::shared_ptr<Function> simplify() const = 0;
     virtual bool isEqual(const std::shared_ptr<Function>& other) const = 0;
+    virtual std::string display() const = 0;
 };
 // Final child nodes for expressions
 // Class for constant functions
@@ -51,6 +52,10 @@ public:
         }
         return value == otherConst->value;
     }
+
+    std::string display() const override{
+        return std::to_string(value);
+    }
 };
 //Can be words or characters
 class Variable : public Function {
@@ -78,6 +83,10 @@ class Variable : public Function {
         auto otherVar = dynamic_cast<Variable*>(other.get());
         if(!otherVar) return false;
         return name.compare(otherVar->name);
+    }
+
+    std::string display() const override{
+        return name;
     }
 };
 
@@ -110,6 +119,10 @@ class AbsVal : public Function {
         if(!otherAbs) return false;
 
         return argument->isEqual(otherAbs->argument);
+    }
+
+    std::string display() const override{
+        return "| " + argument->display() + " |";
     }
 };
 
@@ -152,6 +165,12 @@ public:
         auto otherPoly = dynamic_cast<Polynomial*>(other.get());
         if(!otherPoly) return false;
         return coefficient->isEqual(otherPoly->coefficient) && exponent == otherPoly->getExponent();
+    }
+
+    std::string display() const override{
+        if(auto var = dynamic_cast<Variable*>(coefficient.get())){
+            return coefficient->display() + "^" + std::to_string(exponent);
+        }
     }
 };
 
@@ -197,6 +216,15 @@ class Logarithmic : public Function{
         if(!otherLog) return false;
         return base->isEqual(otherLog->base) && argument->isEqual(otherLog->argument);
     }
+
+    std::string display() const override{
+        if(base->isEqual(std::make_shared<Constant>(std::exp(1.0)))){
+            return "ln(" + argument->display() + ")";
+        }
+        else {
+            return "log_" + base->display() + "(" + argument->display() + ")";
+        }
+    }
 };
 
 class Exponential : public Function{
@@ -234,5 +262,12 @@ class Exponential : public Function{
         auto otherExp = dynamic_cast<Exponential*>(other.get());
         if(!otherExp) return false;
         return base->isEqual(otherExp->base) && argument->isEqual(otherExp->argument);
+    }
+
+    std::string display() const override{
+        if(base->isEqual(std::make_shared<Constant>(std::exp(1.0)))){
+            return "e^" + argument->display();
+        }
+        else return base->display() + "^" + argument->display();
     }
 };

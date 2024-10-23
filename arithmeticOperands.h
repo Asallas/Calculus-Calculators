@@ -32,12 +32,12 @@ class Sum : public Function {
         auto constLeft = dynamic_cast<Constant*>(simplifiedLeft.get());
         auto constRight = dynamic_cast<Constant*>(simplifiedRight.get());
 
-        if(constLeft && constRight) return std::make_shared<Constant>(simplifiedLeft->evaluate(1) + simplifiedRight->evaluate(1));
+        if(constLeft && constRight) return std::make_shared<Constant>(simplifiedLeft->evaluate(1.0) + simplifiedRight->evaluate(1.0));
 
-        if(constLeft && simplifiedLeft->evaluate(0) == 0.0){
+        if(constLeft && simplifiedLeft->evaluate(0.0) == 0.0){
             return simplifiedRight;
         }
-        if(constRight && simplifiedRight->evaluate(0) == 0){
+        if(constRight && simplifiedRight->evaluate(0.0) == 0.0){
             return simplifiedLeft;
         }
         if(simplifiedLeft->isEqual(simplifiedRight)){
@@ -52,6 +52,10 @@ class Sum : public Function {
 
         // Compare left and right subtrees recursively
         return left->isEqual(otherSum->left) && right->isEqual(otherSum->right);
+    }
+
+    std::string display() const override{
+        return left->display() + " + " + right->display();
     }
 };
 
@@ -84,10 +88,10 @@ class Difference : public Function{
         auto simplifiedLeft = left->simplify();
         auto simplifiedRight = right->simplify();
 
-        if(dynamic_cast<Constant*>(simplifiedLeft.get()) && simplifiedLeft->evaluate(0) == 0){
+        if(dynamic_cast<Constant*>(simplifiedLeft.get()) && simplifiedLeft->evaluate(0.0) == 0.0){
             return std::make_shared<Product>(std::make_shared<Constant>(-1.0), simplifiedRight);
         }
-        if(dynamic_cast<Constant*>(simplifiedRight.get()) && simplifiedRight->evaluate(0) == 0){
+        if(dynamic_cast<Constant*>(simplifiedRight.get()) && simplifiedRight->evaluate(0.0) == 0.0){
             return simplifiedLeft;
         }
         if(simplifiedLeft->isEqual(simplifiedRight)){
@@ -102,6 +106,10 @@ class Difference : public Function{
 
         // Compare left and right subtrees recursively
         return left->isEqual(otherDiff->left) && right->isEqual(otherDiff->right);
+    }
+
+    std::string display() const override{
+        return left->display() + " - " + right->display();
     }
 };
 
@@ -136,16 +144,16 @@ class Product : public Function {
         auto simplifiedLeft = left->simplify();
         auto simplifiedRight = right->simplify();
 
-        if(dynamic_cast<Constant*>(simplifiedLeft.get()) && simplifiedLeft->evaluate(0) == 0){
+        if(dynamic_cast<Constant*>(simplifiedLeft.get()) && simplifiedLeft->evaluate(0.0) == 0.0){
             return std::make_shared<Constant>(0.0);
         }
         if(isOne(simplifiedLeft)){
             return simplifiedRight;
         }
-        if(dynamic_cast<Constant*>(simplifiedRight.get()) && simplifiedRight->evaluate(0) == 0){
+        if(dynamic_cast<Constant*>(simplifiedRight.get()) && simplifiedRight->evaluate(0.0) == 0.0){
             return std::make_shared<Constant>(0.0);
         }
-        if(dynamic_cast<Constant*>(simplifiedRight.get()) && simplifiedRight->evaluate(0) == 1.0){
+        if(dynamic_cast<Constant*>(simplifiedRight.get()) && simplifiedRight->evaluate(0.0) == 1.0){
             return simplifiedLeft;
         }
         if(simplifiedLeft->isEqual(simplifiedRight)){
@@ -159,6 +167,10 @@ class Product : public Function {
         auto otherProd = dynamic_cast<Product*>(other.get());
         if(!otherProd) return false;
         return left->isEqual(otherProd->left) && right->isEqual(otherProd->right);
+    }
+
+    std::string display() const override{
+        return "(" + left->display() + ") * (" + right->display() + ")";
     }
 };
 
@@ -178,8 +190,8 @@ class Quotient : public Function {
     }
 
     double evaluate(double x) const override{
-        double denominator = right->evaluate(0);
-        if(denominator == 0){
+        double denominator = right->evaluate(0.0);
+        if(denominator == 0.0){
             throw std::runtime_error("Error divide by 0");
         }
         return left->evaluate(x) / denominator;
@@ -206,4 +218,8 @@ class Quotient : public Function {
         if(!otherQuot) return false;
         return left->isEqual(otherQuot->left) && right->isEqual(otherQuot->right);
     }
+
+    std::string display() const override{
+        return "(" + left->display() + ") / (" + right->display() + ")";
+    }    
 };

@@ -30,7 +30,7 @@ class Sine : public Function {
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1));
+            return std::make_shared<Constant>(this->evaluate(1.0));
         }
         if(negativeArg(argument)){
             return std::make_shared<Cosine>(argument->simplify());
@@ -42,6 +42,10 @@ class Sine : public Function {
         auto otherSine = dynamic_cast<Sine*>(other.get());
         if(!otherSine) return false;
         return argument->isEqual(otherSine->argument);
+    }
+
+    std::string display() const override{
+        return "sin(" + argument->display() + ")";
     }
 };
 
@@ -59,15 +63,15 @@ class Cosine : public Function{
         if(std::abs(val) <= EPSILON){
             return 0.0;
         }
-        if(val > 1 - EPSILON && val < 1 + EPSILON){
-            return 1;
+        if(val > 1.0 - EPSILON && val < 1.0 + EPSILON){
+            return 1.0;
         }
         return val;
     }
 
     std::shared_ptr<Function> derivative() const override {
         return std::make_shared<Product>(
-            std::make_shared<Product>(std::make_shared<Constant>(-1), 
+            std::make_shared<Product>(std::make_shared<Constant>(-1.0), 
                 std::make_shared<Product>(std::make_shared<Sine>(argument), argument->derivative())));
     }
 
@@ -82,6 +86,10 @@ class Cosine : public Function{
         auto otherCosine = dynamic_cast<Cosine*>(other.get());
         if(!otherCosine) return false;
         return argument->isEqual(otherCosine->argument);
+    }
+
+    std::string display() const override{
+        return "cos(" + argument->display() + ")";
     }
 };
 
@@ -113,7 +121,7 @@ class Tangent : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1));
+            return std::make_shared<Constant>(this->evaluate(1.0));
         }
         return std::make_shared<Tangent>(argument->simplify());
     }
@@ -122,6 +130,10 @@ class Tangent : public Function{
         auto otherTan = dynamic_cast<Tangent*>(other.get());
         if(!otherTan) return false;
         return argument->isEqual(otherTan->argument);
+    }
+
+    std::string display() const override{
+        return "tan(" + argument->display() + ")";
     }
 };
 //Secant
@@ -139,8 +151,8 @@ class Secant : public Function{
         if(val > 0 - EPSILON && val < 0 + EPSILON){
             throw std::runtime_error("Error divide by 0");
         }
-        if(val > 1 - EPSILON && val < 1 + EPSILON){
-            return 1;
+        if(val > 1.0 - EPSILON && val < 1.0 + EPSILON){
+            return 1.0;
         }
         return 1.0 / val;
     }
@@ -153,7 +165,7 @@ class Secant : public Function{
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        return std::make_shared<Constant>(this->evaluate(1));
+        return std::make_shared<Constant>(this->evaluate(1.0));
     }
     return std::make_shared<Secant>(argument->simplify());
     }
@@ -162,6 +174,10 @@ class Secant : public Function{
         auto otherSec = dynamic_cast<Secant*>(other.get());
         if(!otherSec) return false;
         return argument->isEqual(otherSec->argument);
+    }
+
+    std::string display() const override{
+        return "sec(" + argument->display() + ")";
     }
 };
 //cosecant
@@ -176,10 +192,10 @@ class Cosecant : public Function{
                 
     double evaluate (double x) const override {
         double aVal = std::sin(argument->evaluate(x));
-        if(aVal > 0 - EPSILON && aVal < 0 + EPSILON){
+        if(aVal > 0.0 - EPSILON && aVal < 0.0 + EPSILON){
             throw std::runtime_error("Error divide by 0");
         }
-        if(aVal > 1 - EPSILON && aVal < 1 + EPSILON) return 1.0;
+        if(aVal > 1.0 - EPSILON && aVal < 1.0 + EPSILON) return 1.0;
         return 1.0 / aVal;
     }
 
@@ -195,6 +211,10 @@ class Cosecant : public Function{
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
     }
+
+    std::string display() const override{
+        return "csc(" + argument->display() + ")";
+    }
 };
 //cotangent
 class Cotangent : public Function{
@@ -208,10 +228,10 @@ class Cotangent : public Function{
         
     double evaluate (double x) const override {
         double aVal = std::tan(argument->evaluate(x));
-        if(aVal > 0 - EPSILON && aVal < 0 + EPSILON){
+        if(aVal > 0.0 - EPSILON && aVal < 0.0 + EPSILON){
             throw std::runtime_error("Error divide by 0");
         }
-        if(aVal > 1 - EPSILON && aVal < 1 + EPSILON) return 1.0;
+        if(aVal > 1.0 - EPSILON && aVal < 1.0 + EPSILON) return 1.0;
         return 1.0 / aVal;
     }
 
@@ -222,7 +242,7 @@ class Cotangent : public Function{
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        return std::make_shared<Constant>(this->evaluate(1));
+        return std::make_shared<Constant>(this->evaluate(1.0));
     }
     return std::make_shared<Cotangent>(argument->simplify());
     }
@@ -231,6 +251,10 @@ class Cotangent : public Function{
         auto otherTrig = dynamic_cast<Cotangent*>(other.get());
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
+    }
+
+    std::string display() const override{
+        return "cot(" + argument->display() + ")";
     }
 };
 //arcsin
@@ -250,12 +274,12 @@ class Arcsin : public Function{
     std::shared_ptr<Function> derivative() const override {
         return std::make_shared<Product>(
             std::make_shared<Polynomial>(std::make_shared<Difference>(argument->derivative(), 
-            std::make_shared<Polynomial>(argument), 2), (-1.0/2.0)), argument->derivative());
+            std::make_shared<Polynomial>(argument), 2.0), (-1.0/2.0)), argument->derivative());
     }
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        return std::make_shared<Constant>(this->evaluate(1));
+        return std::make_shared<Constant>(this->evaluate(1.0));
     }
     return std::make_shared<Arcsin>(argument->simplify());
     }
@@ -264,6 +288,10 @@ class Arcsin : public Function{
         auto otherTrig = dynamic_cast<Arcsin*>(other.get());
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
+    }
+
+    std::string display() const override{
+        return "arcsin(" + argument->display() + ")";
     }
 };
 //arccos
@@ -286,7 +314,7 @@ class Arccos : public Function{
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        return std::make_shared<Constant>(this->evaluate(1));
+        return std::make_shared<Constant>(this->evaluate(1.0));
     }
     return std::make_shared<Arccos>(argument->simplify());
     }
@@ -295,6 +323,10 @@ class Arccos : public Function{
         auto otherTrig = dynamic_cast<Arccos*>(other.get());
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
+    }
+
+    std::string display() const override{
+        return "arccos(" + argument->display() + ")";
     }
 };
 //arctan
@@ -312,12 +344,13 @@ class Arctan : public Function{
     }
 
     std::shared_ptr<Function> derivative() const override {
-        return std::make_shared<Quotient>(argument->derivative(),std::make_shared<Sum>(1, std::make_shared<Polynomial>(argument, 2.0)));
+        return std::make_shared<Quotient>(argument->derivative(),
+            std::make_shared<Sum>(std::make_shared<Constant>(1.0), std::make_shared<Polynomial>(argument, 2.0)));
     }
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        return std::make_shared<Constant>(this->evaluate(1));
+        return std::make_shared<Constant>(this->evaluate(1.0));
     }
     return std::make_shared<Tangent>(argument->simplify());
     }
@@ -326,6 +359,10 @@ class Arctan : public Function{
         auto otherTrig = dynamic_cast<Arctan*>(other.get());
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
+    }
+
+    std::string display() const override{
+        return "arctan(" + argument->display() + ")";
     }
 };
 //arccot
@@ -363,6 +400,10 @@ class Arccot : public Function{
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
     }
+
+    std::string display() const override{
+        return "arccot(" + argument->display() + ")";
+    }
 };
 //arcsec
 class Arcsec : public Function{
@@ -376,7 +417,7 @@ class Arcsec : public Function{
         
     double evaluate (double x) const override {
         double val = argument->evaluate(x);
-        if(val == 0){
+        if(val == 0.0){
             throw std::runtime_error("Error divide by 0");
         }
         return std::acos(1.0 / val);
@@ -391,7 +432,7 @@ class Arcsec : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1));
+            return std::make_shared<Constant>(this->evaluate(1.0));
         }
         return std::make_shared<Arcsec>(argument->simplify());
     }
@@ -400,6 +441,10 @@ class Arcsec : public Function{
         auto otherTrig = dynamic_cast<Arcsec*>(other.get());
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
+    }
+
+    std::string display() const override{
+        return "arcsec(" + argument->display() + ")";
     }
 };
 class Arccsc : public Function{
@@ -413,7 +458,7 @@ class Arccsc : public Function{
         
     double evaluate (double x) const override {
         double val = argument->evaluate(x);
-        if(val == 0){
+        if(val == 0.0){
             throw std::runtime_error("Error divide by 0");
         }
         return std::asin(1.0 / val);
@@ -438,6 +483,10 @@ class Arccsc : public Function{
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
     }
+
+    std::string display() const override{
+        return "arccsc(" + argument->display() + ")";
+    }
 };
 //sinh
 class SineH : public Function{
@@ -459,7 +508,7 @@ class SineH : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1));
+            return std::make_shared<Constant>(this->evaluate(1.0));
         }
         return std::make_shared<SineH>(argument->simplify());
     }
@@ -468,6 +517,10 @@ class SineH : public Function{
         auto otherTrig = dynamic_cast<SineH*>(other.get());
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
+    }
+
+    std::string display() const override{
+        return "sinh(" + argument->display() + ")";
     }
 };
 //cosh
@@ -490,7 +543,7 @@ class CosineH : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1));
+            return std::make_shared<Constant>(this->evaluate(1.0));
         }
         return std::make_shared<CosineH>(argument->simplify());
     }
@@ -499,6 +552,10 @@ class CosineH : public Function{
         auto otherTrig = dynamic_cast<CosineH*>(other.get());
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
+    }
+
+    std::string display() const override{
+        return "cosh(" + argument->display() + ")";
     }
 };
 //tanh
@@ -532,6 +589,10 @@ class TangentH : public Function{
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
     }
+
+    std::string display() const override{
+        return "tanh(" + argument->display() + ")";
+    }
 };
 
 //sech
@@ -546,10 +607,10 @@ class SecantH : public Function{
         
     double evaluate (double x) const override {
         double val = std::cosh(argument->evaluate(x));
-        if(val > 0 - EPSILON && val < 0 + EPSILON){
+        if(val > 0.0 - EPSILON && val < 0.0 + EPSILON){
             throw std::runtime_error("Error divide by 0");
         }
-        if(val > 1 - EPSILON && val < 1 + EPSILON) return 1.0;
+        if(val > 1.0 - EPSILON && val < 1.0 + EPSILON) return 1.0;
         return 1.0 / val;
     }
 
@@ -571,6 +632,10 @@ class SecantH : public Function{
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
     }
+
+    std::string display() const override{
+        return "sech(" + argument->display() + ")";
+    }
 };
 //csch
 class CosecantH : public Function{
@@ -584,10 +649,10 @@ class CosecantH : public Function{
         
     double evaluate (double x) const override {
         double val = std::sinh(argument->evaluate(x));
-        if(val > 0 - EPSILON && val < 0 + EPSILON){
+        if(val > 0.0 - EPSILON && val < 0.0 + EPSILON){
             throw std::runtime_error("Error divide by 0");
         }
-        if(val > 1 - EPSILON && val < 1 + EPSILON) return 1.0;
+        if(val > 1.0 - EPSILON && val < 1.0 + EPSILON) return 1.0;
         return 1.0 / val;
     }
 
@@ -599,7 +664,7 @@ class CosecantH : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1));
+            return std::make_shared<Constant>(this->evaluate(1.0));
         }
         return std::make_shared<CosecantH>(argument->simplify());
     }
@@ -608,6 +673,10 @@ class CosecantH : public Function{
         auto otherTrig = dynamic_cast<CosecantH*>(other.get());
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
+    }
+
+    std::string display() const override{
+        return "csch(" + argument->display() + ")";
     }
 };
 //coth
@@ -622,10 +691,10 @@ class CotangentH : public Function{
         
     double evaluate (double x) const override {
         double val = std::tanh(argument->evaluate(x));
-        if(val > 0 - EPSILON && val < 0 + EPSILON){
+        if(val > 0.0 - EPSILON && val < 0.0 + EPSILON){
             throw std::runtime_error("Error divide by 0");
         }
-        if(val > 1 - EPSILON && val < 1 + EPSILON) return 1.0;
+        if(val > 1.0 - EPSILON && val < 1.0 + EPSILON) return 1.0;
         return 1.0 / val;
     }
 
@@ -637,7 +706,7 @@ class CotangentH : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1));
+            return std::make_shared<Constant>(this->evaluate(1.0));
         }
         return std::make_shared<CotangentH>(argument->simplify());
     }
@@ -646,5 +715,9 @@ class CotangentH : public Function{
         auto otherTrig = dynamic_cast<CotangentH*>(other.get());
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
+    }
+
+    std::string display() const override{
+        return "coth(" + argument->display() + ")";
     }
 };
