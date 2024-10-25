@@ -1,15 +1,16 @@
-#pragma once
+#ifndef FUNCTIONS_H
+#define FUNCTIONS_H
+#define EPSILON 1e-12
 
 #include <iostream>
 #include <memory>
 #include <cmath>
 #include <map>
 #include <functional>
-#include "trigSimplify.h"
 #include "arithmeticOperands.h"
 #include "trigFunctions.h"
+#include "functionChecks.h"
 
-#define EPSILON 1e-12
 
 // Base class for all functions
 // Root node
@@ -29,31 +30,17 @@ class Constant : public Function {
 public:
     Constant(double val) : value(val) {}
 
-    double getValue(){
-        return value;
-    }
+    double getValue();
 
-    double evaluate(double x) const override {
-        return value;
-    }
+    double evaluate(double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        return std::make_shared<Constant>(value);
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(const std::shared_ptr<Function>& other) const override{
-        auto otherConst = dynamic_cast<Constant*>(other.get());
-        if(!otherConst){
-            return false;
-        }
-        return value == otherConst->value;
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return std::to_string(value);
-    }
+    std::string display() const override;
 };
 //Can be words or characters
 class Variable : public Function {
@@ -61,29 +48,17 @@ class Variable : public Function {
     public:
     Variable(std::string x) : name(x){}
 
-    std::string getName(){
-        return name;
-    }
+    std::string getName();
 
-    double evaluate(double x){
-        return x;
-    }
+    double evaluate(double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify(){
-        return std::make_shared<Variable>(name);
-    }
+    std::shared_ptr<Function> simplify()const override;
 
-    bool isEqual(const std::shared_ptr<Function>& other) const override{
-        auto otherVar = dynamic_cast<Variable*>(other.get());
-        if(!otherVar) return false;
-        return name.compare(otherVar->name);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return name;
-    }
+    std::string display() const override;
 };
 
 
@@ -93,30 +68,17 @@ class AbsVal : public Function {
     public:
     AbsVal(std::shared_ptr<Function> arg) : argument(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
+    std::shared_ptr<Function> getArgument();
 
-    double evaluate(double x) const override{
-        return std::abs(x);
-    }
+    double evaluate(double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify(){
-        return std::make_shared<AbsVal>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(const std::shared_ptr<Function>& other) const override{
-        auto otherAbs = dynamic_cast<AbsVal*>(other.get());
-        if(!otherAbs) return false;
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-        return argument->isEqual(otherAbs->argument);
-    }
-
-    std::string display() const override{
-        return "| " + argument->display() + " |";
-    }
+    std::string display() const override;
 };
 
 
@@ -127,37 +89,18 @@ class Polynomial : public Function {
 public:
     Polynomial(std::shared_ptr<Function> coef, double exp) : coefficient(coef), exponent(exp) {}
 
-    std::shared_ptr<Function> getCoefficient(){
-        return coefficient;
-    }
-    double getExponent(){
-        return exponent;
-    }
+    std::shared_ptr<Function> getCoefficient();
+    double getExponent();
 
-    double evaluate(double x) const override {
-        return std::pow(coefficient->evaluate(x), exponent);
-    }
-    //Derivative will be of the form f'(x) * A *(f(x))^(A-1)
+    double evaluate(double x) const override;
+
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        if(auto constant = dynamic_cast<Constant*>(coefficient.get())){
-            return std::make_shared<Constant>(this->evaluate(1));
-        }
-        return std::make_shared<Polynomial>(coefficient->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(const std::shared_ptr<Function>& other) const override{
-        auto otherPoly = dynamic_cast<Polynomial*>(other.get());
-        if(!otherPoly) return false;
-        return coefficient->isEqual(otherPoly->coefficient) && exponent == otherPoly->getExponent();
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        if(auto var = dynamic_cast<Variable*>(coefficient.get())){
-            return coefficient->display() + "^" + std::to_string(exponent);
-        }
-    }
+    std::string display() const override;
 };
 
 class Logarithmic : public Function{
@@ -166,44 +109,18 @@ class Logarithmic : public Function{
     public:
     Logarithmic(std::shared_ptr<Function> b, std::shared_ptr<Function> arg) : base(b), argument(arg) {}
 
-    std::shared_ptr<Function> getBase(){
-        return base;
-    }
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
+    std::shared_ptr<Function> getBase();
+    std::shared_ptr<Function> getArgument();
 
-    double evaluate (double x) const override {
-        return std::log(argument->evaluate(x)) / std::log(base->evaluate(x));
-    }
+    double evaluate (double x) const override;
     
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        if(base->isEqual(argument)) return std::make_shared<Constant>(1.0);
-        if(argument->isEqual(std::make_shared<Constant>(1.0))) return std::make_shared<Constant>(0.0);
-        auto const1 = dynamic_cast<Constant*>(base.get());
-        auto const2 = dynamic_cast<Constant*>(argument.get());
-        if(const1 && const2){
-            return std::make_shared<Constant>(this->evaluate(1));
-        }
-        return std::make_shared<Logarithmic>(base->simplify(), argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(const std::shared_ptr<Function>& other) const override{
-        auto otherLog = dynamic_cast<Logarithmic*>(other.get());
-        if(!otherLog) return false;
-        return base->isEqual(otherLog->base) && argument->isEqual(otherLog->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        if(base->isEqual(std::make_shared<Constant>(std::exp(1.0)))){
-            return "ln(" + argument->display() + ")";
-        }
-        else {
-            return "log_" + base->display() + "(" + argument->display() + ")";
-        }
-    }
+    std::string display() const override;
 };
 
 class Exponential : public Function{
@@ -212,38 +129,18 @@ class Exponential : public Function{
     public:
     Exponential(std::shared_ptr<Function> a, std::shared_ptr<Function> arg) : base(a), argument(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
-    std::shared_ptr<Function> getBase(){
-        return base;
-    }
+    std::shared_ptr<Function> getArgument();
+    std::shared_ptr<Function> getBase();
 
-    double evaluate (double x) const override {
-        return std::pow(base->evaluate(x), argument->evaluate(x));
-    }
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        auto const1 = dynamic_cast<Constant*>(base.get());
-        auto const2 = dynamic_cast<Constant*>(argument.get());
-        if(const1 && const2){
-            return std::make_shared<Constant>(this->evaluate(1));
-        }
-        return std::make_shared<Exponential>(base->simplify(), argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(const std::shared_ptr<Function>& other) const override{
-        auto otherExp = dynamic_cast<Exponential*>(other.get());
-        if(!otherExp) return false;
-        return base->isEqual(otherExp->base) && argument->isEqual(otherExp->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        if(base->isEqual(std::make_shared<Constant>(std::exp(1.0)))){
-            return "e^" + argument->display();
-        }
-        else return base->display() + "^" + argument->display();
-    }
+    std::string display() const override;
 };
+
+#endif

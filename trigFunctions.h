@@ -2,37 +2,35 @@
 
 #include "Functions.h"
 
-// Class for sine function (sin(x))
-class Sine : public Function {
+
+class Trigonometric : public Function{
+    protected:
     std::shared_ptr<Function> argument;
+
     public:
-    Sine(std::shared_ptr<Function> arg) : argument(arg) {}
+    explicit Trigonometric(const std::shared_ptr<Function>& expr) : argument(expr){}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
+    std::shared_ptr<Function> getArgument() const;
+};
 
-    double evaluate(double x) const override {
-        double val = std::sin(argument->evaluate(x));
-        if(std::abs(val) <= EPSILON){
-            return 0.0;
-        }
-        if(val > 1.0 - EPSILON && val < 1.0 + EPSILON){
-            return 1.0;
-        }
+// Class for sine function (sin(x))
+class Sine : public Trigonometric{
+    public:
+    explicit Sine(const std::shared_ptr<Function>& arg) : Trigonometric(arg) {}    
 
-        return val;
-    }
+    double evaluate(double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1.0));
+            if(double eval = this->evaluate(1.0) == floor(eval)){
+                return std::make_shared<Constant>(eval);
+            }
         }
-        if(negativeArg(argument)){
-            return std::make_shared<Cosine>(argument->simplify());
-        }
+        // if(negativeArg(argument)){
+        //     return std::make_shared<Cosine>(argument->simplify());
+        // }
         return std::make_shared<Sine>(argument->simplify());
     }
 
@@ -47,14 +45,10 @@ class Sine : public Function {
     }
 };
 
-class Cosine : public Function{
-    std::shared_ptr<Function> argument;
+class Cosine : public Trigonometric{
     public:
-    Cosine(std::shared_ptr<Function> arg) : argument(arg) {}
+    explicit Cosine(const std::shared_ptr<Function>& arg) : Trigonometric(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
 
     double evaluate (double x) const override {
         double val = std::cos(argument->evaluate(x));
@@ -71,7 +65,9 @@ class Cosine : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1));
+            if(double eval = this->evaluate(1.0) == floor(eval)){
+                return std::make_shared<Constant>(eval);
+            }
         }
         return std::make_shared<Cosine>(argument->simplify());
     }
@@ -87,14 +83,9 @@ class Cosine : public Function{
     }
 };
 
-class Tangent : public Function{
-    std::shared_ptr<Function> argument;
+class Tangent : public Trigonometric{
     public:
-    Tangent(std::shared_ptr<Function> arg) : argument(arg) {}
-
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
+    explicit Tangent(const std::shared_ptr<Function>& arg) : Trigonometric(arg) {}
 
     double evaluate (double x) const override {
         double val = std::tan(argument->evaluate(x));
@@ -111,7 +102,9 @@ class Tangent : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1.0));
+            if(double eval = this->evaluate(1.0) == floor(eval)){
+                return std::make_shared<Constant>(eval);
+            }
         }
         return std::make_shared<Tangent>(argument->simplify());
     }
@@ -127,14 +120,9 @@ class Tangent : public Function{
     }
 };
 //Secant
-class Secant : public Function{
-    std::shared_ptr<Function> argument;
+class Secant : public Trigonometric{
     public:
-    Secant(std::shared_ptr<Function> arg) : argument(arg) {}
-
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
+    explicit Secant(const std::shared_ptr<Function>& arg) : Trigonometric(arg) {}
         
     double evaluate (double x) const override {
         double val = std::cos(argument->evaluate(x));
@@ -151,7 +139,9 @@ class Secant : public Function{
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        return std::make_shared<Constant>(this->evaluate(1.0));
+        if(double eval = this->evaluate(1.0) == floor(eval)){
+            return std::make_shared<Constant>(eval);
+        }
     }
     return std::make_shared<Secant>(argument->simplify());
     }
@@ -167,10 +157,10 @@ class Secant : public Function{
     }
 };
 //cosecant
-class Cosecant : public Function{
+class Cosecant : public Trigonometric{
     std::shared_ptr<Function> argument;
     public:
-    Cosecant(std::shared_ptr<Function> arg) : argument(arg) {}
+    explicit Cosecant(const std::shared_ptr<Function>& arg) : Trigonometric(arg) {}
 
     std::shared_ptr<Function> getArgument(){
         return argument;
@@ -220,7 +210,9 @@ class Cotangent : public Function{
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        return std::make_shared<Constant>(this->evaluate(1.0));
+        if(double eval = this->evaluate(1.0) == floor(eval)){
+            return std::make_shared<Constant>(eval);
+        }
     }
     return std::make_shared<Cotangent>(argument->simplify());
     }
@@ -253,7 +245,9 @@ class Arcsin : public Function{
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        return std::make_shared<Constant>(this->evaluate(1.0));
+        if(double eval = this->evaluate(1.0) == floor(eval)){
+            return std::make_shared<Constant>(eval);
+        }
     }
     return std::make_shared<Arcsin>(argument->simplify());
     }
@@ -286,7 +280,9 @@ class Arccos : public Function{
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        return std::make_shared<Constant>(this->evaluate(1.0));
+        if(double eval = this->evaluate(1.0) == floor(eval)){
+            return std::make_shared<Constant>(eval);
+        }
     }
     return std::make_shared<Arccos>(argument->simplify());
     }
@@ -319,7 +315,9 @@ class Arctan : public Function{
 
     std::shared_ptr<Function> simplify() const override{
     if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        return std::make_shared<Constant>(this->evaluate(1.0));
+        if(double eval = this->evaluate(1.0) == floor(eval)){
+            return std::make_shared<Constant>(eval);
+        }
     }
     return std::make_shared<Tangent>(argument->simplify());
     }
@@ -356,7 +354,9 @@ class Arccot : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1));
+            if(double eval = this->evaluate(1.0) == floor(eval)){
+                return std::make_shared<Constant>(eval);
+            }
         }
         return std::make_shared<Arccot>(argument->simplify());
     }
@@ -393,7 +393,9 @@ class Arcsec : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1.0));
+            if(double eval = this->evaluate(1.0) == floor(eval)){
+                return std::make_shared<Constant>(eval);
+            }
         }
         return std::make_shared<Arcsec>(argument->simplify());
     }
@@ -429,7 +431,9 @@ class Arccsc : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1));
+            if(double eval = this->evaluate(1.0) == floor(eval)){
+                return std::make_shared<Constant>(eval);
+            }
         }
         return std::make_shared<Arccsc>(argument->simplify());
     }
@@ -462,7 +466,9 @@ class SineH : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1.0));
+            if(double eval = this->evaluate(1.0) == floor(eval)){
+                return std::make_shared<Constant>(eval);
+            }
         }
         return std::make_shared<SineH>(argument->simplify());
     }
@@ -495,7 +501,9 @@ class CosineH : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1.0));
+            if(double eval = this->evaluate(1.0) == floor(eval)){
+                return std::make_shared<Constant>(eval);
+            }
         }
         return std::make_shared<CosineH>(argument->simplify());
     }
@@ -528,7 +536,9 @@ class TangentH : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1));
+            if(double eval = this->evaluate(1.0) == floor(eval)){
+                return std::make_shared<Constant>(eval);
+            }
         }
         return std::make_shared<TangentH>(argument->simplify());
     }
@@ -567,7 +577,9 @@ class SecantH : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1));
+            if(double eval = this->evaluate(1.0) == floor(eval)){
+                return std::make_shared<Constant>(eval);
+            }
         }
         return std::make_shared<SecantH>(argument->simplify());
     }
@@ -605,7 +617,9 @@ class CosecantH : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1.0));
+            if(double eval = this->evaluate(1.0) == floor(eval)){
+                return std::make_shared<Constant>(eval);
+            }
         }
         return std::make_shared<CosecantH>(argument->simplify());
     }
@@ -643,7 +657,9 @@ class CotangentH : public Function{
 
     std::shared_ptr<Function> simplify() const override{
         if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            return std::make_shared<Constant>(this->evaluate(1.0));
+            if(double eval = this->evaluate(1.0) == floor(eval)){
+                return std::make_shared<Constant>(eval);
+            }
         }
         return std::make_shared<CotangentH>(argument->simplify());
     }
