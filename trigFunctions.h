@@ -2,7 +2,7 @@
 
 #include "Functions.h"
 
-
+// General class to group all derived trigonometric function classes under one class
 class Trigonometric : public Function{
     protected:
     std::shared_ptr<Function> argument;
@@ -11,9 +11,15 @@ class Trigonometric : public Function{
     explicit Trigonometric(const std::shared_ptr<Function>& expr) : argument(expr){}
 
     std::shared_ptr<Function> getArgument() const;
+
+    virtual double evaluate(double x) const override = 0;   // Evaluate the function at x
+    virtual std::shared_ptr<Function> derivative() const override = 0;  // Return the derivative of the function
+    virtual std::shared_ptr<Function> simplify() const override = 0;
+    virtual bool isEqual(const std::shared_ptr<Function>& other) const override = 0;
+    virtual std::string display() const override = 0;
 };
 
-// Class for sine function (sin(x))
+// Class for sine function (sin(f(x)))
 class Sine : public Trigonometric{
     public:
     explicit Sine(const std::shared_ptr<Function>& arg) : Trigonometric(arg) {}    
@@ -22,655 +28,288 @@ class Sine : public Trigonometric{
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            if(double eval = this->evaluate(1.0) == floor(eval)){
-                return std::make_shared<Constant>(eval);
-            }
-        }
-        // if(negativeArg(argument)){
-        //     return std::make_shared<Cosine>(argument->simplify());
-        // }
-        return std::make_shared<Sine>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherSine = dynamic_cast<Sine*>(other.get());
-        if(!otherSine) return false;
-        return argument->isEqual(otherSine->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return "sin(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
 
+// Class for cosine function (cos(f(x)))
 class Cosine : public Trigonometric{
     public:
     explicit Cosine(const std::shared_ptr<Function>& arg) : Trigonometric(arg) {}
 
-
-    double evaluate (double x) const override {
-        double val = std::cos(argument->evaluate(x));
-        if(std::abs(val) <= EPSILON){
-            return 0.0;
-        }
-        if(val > 1.0 - EPSILON && val < 1.0 + EPSILON){
-            return 1.0;
-        }
-        return val;
-    }
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            if(double eval = this->evaluate(1.0) == floor(eval)){
-                return std::make_shared<Constant>(eval);
-            }
-        }
-        return std::make_shared<Cosine>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherCosine = dynamic_cast<Cosine*>(other.get());
-        if(!otherCosine) return false;
-        return argument->isEqual(otherCosine->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return "cos(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
 
+// Class for tangent function (tan(f(x)))
 class Tangent : public Trigonometric{
     public:
     explicit Tangent(const std::shared_ptr<Function>& arg) : Trigonometric(arg) {}
 
-    double evaluate (double x) const override {
-        double val = std::tan(argument->evaluate(x));
-        if(std::abs(val) <= EPSILON){
-            return 0.0;
-        }
-        if(val > 1 - EPSILON && val < 1 + EPSILON){
-            return 1;
-        }
-        return val;
-    }
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            if(double eval = this->evaluate(1.0) == floor(eval)){
-                return std::make_shared<Constant>(eval);
-            }
-        }
-        return std::make_shared<Tangent>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherTan = dynamic_cast<Tangent*>(other.get());
-        if(!otherTan) return false;
-        return argument->isEqual(otherTan->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return "tan(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
-//Secant
+
+// Class for secant function (sec(f(x)))
 class Secant : public Trigonometric{
     public:
     explicit Secant(const std::shared_ptr<Function>& arg) : Trigonometric(arg) {}
         
-    double evaluate (double x) const override {
-        double val = std::cos(argument->evaluate(x));
-        if(val > 0 - EPSILON && val < 0 + EPSILON){
-            throw std::runtime_error("Error divide by 0");
-        }
-        if(val > 1.0 - EPSILON && val < 1.0 + EPSILON){
-            return 1.0;
-        }
-        return 1.0 / val;
-    }
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-    if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        if(double eval = this->evaluate(1.0) == floor(eval)){
-            return std::make_shared<Constant>(eval);
-        }
-    }
-    return std::make_shared<Secant>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherSec = dynamic_cast<Secant*>(other.get());
-        if(!otherSec) return false;
-        return argument->isEqual(otherSec->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other)const override;
 
-    std::string display() const override{
-        return "sec(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
-//cosecant
+
+// Class for cosecant function (csc(f(x)))
 class Cosecant : public Trigonometric{
-    std::shared_ptr<Function> argument;
     public:
     explicit Cosecant(const std::shared_ptr<Function>& arg) : Trigonometric(arg) {}
-
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
                 
-    double evaluate (double x) const override {
-        double aVal = std::sin(argument->evaluate(x));
-        if(aVal > 0.0 - EPSILON && aVal < 0.0 + EPSILON){
-            throw std::runtime_error("Error divide by 0");
-        }
-        if(aVal > 1.0 - EPSILON && aVal < 1.0 + EPSILON) return 1.0;
-        return 1.0 / aVal;
-    }
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherTrig = dynamic_cast<Cosecant*>(other.get());
-        if(!otherTrig) return false;
-        return argument->isEqual(otherTrig->argument);
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    std::string display() const override{
-        return "csc(" + argument->display() + ")";
-    }
+    bool isEqual(const std::shared_ptr<Function>& other)const override;
+
+    std::string display() const override;
 };
-//cotangent
-class Cotangent : public Function{
-    std::shared_ptr<Function> argument;
-    public:
-    Cotangent(std::shared_ptr<Function> arg) : argument(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
+// Class for cotangent function (cot(f(x)))
+class Cotangent : public Trigonometric{
+    public:
+    explicit Cotangent(std::shared_ptr<Function> arg) : Trigonometric(arg) {}
         
-    double evaluate (double x) const override {
-        double aVal = std::tan(argument->evaluate(x));
-        if(aVal > 0.0 - EPSILON && aVal < 0.0 + EPSILON){
-            throw std::runtime_error("Error divide by 0");
-        }
-        if(aVal > 1.0 - EPSILON && aVal < 1.0 + EPSILON) return 1.0;
-        return 1.0 / aVal;
-    }
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-    if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        if(double eval = this->evaluate(1.0) == floor(eval)){
-            return std::make_shared<Constant>(eval);
-        }
-    }
-    return std::make_shared<Cotangent>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherTrig = dynamic_cast<Cotangent*>(other.get());
-        if(!otherTrig) return false;
-        return argument->isEqual(otherTrig->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return "cot(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
-//arcsin
-class Arcsin : public Function{
-    std::shared_ptr<Function> argument;
-    public:
-    Arcsin(std::shared_ptr<Function> arg) : argument(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
+// Class for inverse sine function (arcsin(f(x)))
+class Arcsin : public Trigonometric{
+    public:
+    explicit Arcsin(std::shared_ptr<Function> arg) : Trigonometric(arg) {}
         
-    double evaluate (double x) const override {
-        return std::asin(argument->evaluate(x));
-    }
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-    if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        if(double eval = this->evaluate(1.0) == floor(eval)){
-            return std::make_shared<Constant>(eval);
-        }
-    }
-    return std::make_shared<Arcsin>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
+    bool isEqual(const std::shared_ptr<Function>& other) const override{
         auto otherTrig = dynamic_cast<Arcsin*>(other.get());
         if(!otherTrig) return false;
         return argument->isEqual(otherTrig->argument);
     }
 
-    std::string display() const override{
-        return "arcsin(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
-//arccos
-class Arccos : public Function{
-    std::shared_ptr<Function> argument;
-    public:
-    Arccos(std::shared_ptr<Function> arg) : argument(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
+// Class for inverse cosine function (arccos(f(x)))
+class Arccos : public Trigonometric{
+    public:
+    explicit Arccos(std::shared_ptr<Function> arg) : Trigonometric(arg) {}
         
-    double evaluate (double x) const override {
-        return std::acos(argument->evaluate(x));
-    }
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-    if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        if(double eval = this->evaluate(1.0) == floor(eval)){
-            return std::make_shared<Constant>(eval);
-        }
-    }
-    return std::make_shared<Arccos>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherTrig = dynamic_cast<Arccos*>(other.get());
-        if(!otherTrig) return false;
-        return argument->isEqual(otherTrig->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return "arccos(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
-//arctan
-class Arctan : public Function{
-    std::shared_ptr<Function> argument;
-    public:
-    Arctan(std::shared_ptr<Function> arg) : argument(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
+// Class for inverse tangent function (arctan(f(x)))
+class Arctan : public Trigonometric{
+    public:
+    Arctan(std::shared_ptr<Function> arg) : Trigonometric(arg) {}
         
-    double evaluate (double x) const override {
-        return std::atan(argument->evaluate(x));
-    }
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-    if(auto constant = dynamic_cast<Constant*>(argument.get())){
-        if(double eval = this->evaluate(1.0) == floor(eval)){
-            return std::make_shared<Constant>(eval);
-        }
-    }
-    return std::make_shared<Tangent>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherTrig = dynamic_cast<Arctan*>(other.get());
-        if(!otherTrig) return false;
-        return argument->isEqual(otherTrig->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return "arctan(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
-//arccot
-class Arccot : public Function{
-    std::shared_ptr<Function> argument;
-    public:
-    Arccot(std::shared_ptr<Function> arg) : argument(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
-        
-    double evaluate (double x) const override {
-        double val = argument->evaluate(x);
-        if (val == 0.0) {
-            throw std::runtime_error("Error divide by 0");
-        }
-        return std::atan(1.0 / val);
-    }
+// Class for inverse cotangent function (arccot(f(x)))
+class Arccot : public Trigonometric{
+    public:
+    Arccot(std::shared_ptr<Function> arg) : Trigonometric(arg) {}
+
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            if(double eval = this->evaluate(1.0) == floor(eval)){
-                return std::make_shared<Constant>(eval);
-            }
-        }
-        return std::make_shared<Arccot>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherTrig = dynamic_cast<Arccot*>(other.get());
-        if(!otherTrig) return false;
-        return argument->isEqual(otherTrig->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return "arccot(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
-//arcsec
-class Arcsec : public Function{
-    std::shared_ptr<Function> argument;
-    public:
-    Arcsec(std::shared_ptr<Function> arg) : argument(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
+// Class for inverse secant function (arcsec(f(x)))
+class Arcsec : public Trigonometric{
+    public:
+    Arcsec(std::shared_ptr<Function> arg) : Trigonometric(arg) {}
+
         
-    double evaluate (double x) const override {
-        double val = argument->evaluate(x);
-        if(val == 0.0){
-            throw std::runtime_error("Error divide by 0");
-        }
-        return std::acos(1.0 / val);
-    }
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            if(double eval = this->evaluate(1.0) == floor(eval)){
-                return std::make_shared<Constant>(eval);
-            }
-        }
-        return std::make_shared<Arcsec>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherTrig = dynamic_cast<Arcsec*>(other.get());
-        if(!otherTrig) return false;
-        return argument->isEqual(otherTrig->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return "arcsec(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
-class Arccsc : public Function{
-    std::shared_ptr<Function> argument;
-    public:
-    Arccsc(std::shared_ptr<Function> arg) : argument(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
-        
-    double evaluate (double x) const override {
-        double val = argument->evaluate(x);
-        if(val == 0.0){
-            throw std::runtime_error("Error divide by 0");
-        }
-        return std::asin(1.0 / val);
-    }
+// Class for inverse cosecant function (arccsc(f(X)))
+class Arccsc : public Trigonometric{
+    public:
+    Arccsc(std::shared_ptr<Function> arg) : Trigonometric(arg) {}
+      
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            if(double eval = this->evaluate(1.0) == floor(eval)){
-                return std::make_shared<Constant>(eval);
-            }
-        }
-        return std::make_shared<Arccsc>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherTrig = dynamic_cast<Arccsc*>(other.get());
-        if(!otherTrig) return false;
-        return argument->isEqual(otherTrig->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return "arccsc(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
-//sinh
-class SineH : public Function{
-    std::shared_ptr<Function> argument;
-    public:
-    SineH(std::shared_ptr<Function> arg) : argument(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
+//Hyperbolic Functions
+
+// Class for hyperbolic sine function (sinh(f(x)))
+class SineH : public Trigonometric{
+    public:
+    SineH(std::shared_ptr<Function> arg) : Trigonometric(arg) {}
         
-    double evaluate (double x) const override {
-        return std::sinh(argument->evaluate(x));
-    }
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            if(double eval = this->evaluate(1.0) == floor(eval)){
-                return std::make_shared<Constant>(eval);
-            }
-        }
-        return std::make_shared<SineH>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherTrig = dynamic_cast<SineH*>(other.get());
-        if(!otherTrig) return false;
-        return argument->isEqual(otherTrig->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return "sinh(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
-//cosh
-class CosineH : public Function{
-    std::shared_ptr<Function> argument;
-    public:
-    CosineH(std::shared_ptr<Function> arg) : argument(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
+// Class for hyperbolic cosine function (cosh(f(x)))
+class CosineH : public Trigonometric{
+    public:
+    CosineH(std::shared_ptr<Function> arg) : Trigonometric(arg) {}
         
-    double evaluate (double x) const override {
-        return std::cosh(argument->evaluate(x));
-    }
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            if(double eval = this->evaluate(1.0) == floor(eval)){
-                return std::make_shared<Constant>(eval);
-            }
-        }
-        return std::make_shared<CosineH>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherTrig = dynamic_cast<CosineH*>(other.get());
-        if(!otherTrig) return false;
-        return argument->isEqual(otherTrig->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return "cosh(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
-//tanh
-class TangentH : public Function{
-    std::shared_ptr<Function> argument;
-    public:
-    TangentH(std::shared_ptr<Function> arg) : argument(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
-        
-    double evaluate (double x) const override {
-        return std::tanh(argument->evaluate(x));
-    }
+// Class for hyperbolic tangent function (tanh(f(x)))
+class TangentH : public Trigonometric{
+    public:
+    TangentH(std::shared_ptr<Function> arg) : Trigonometric(arg) {}
+
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            if(double eval = this->evaluate(1.0) == floor(eval)){
-                return std::make_shared<Constant>(eval);
-            }
-        }
-        return std::make_shared<TangentH>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherTrig = dynamic_cast<TangentH*>(other.get());
-        if(!otherTrig) return false;
-        return argument->isEqual(otherTrig->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return "tanh(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
 
-//sech
-class SecantH : public Function{
-    std::shared_ptr<Function> argument;
+// Class for hyperbolic secant function (sech(f(x)))
+class SecantH : public Trigonometric{
     public:
-    SecantH(std::shared_ptr<Function> arg) : argument(arg) {}
-
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
+    SecantH(std::shared_ptr<Function> arg) : Trigonometric(arg) {}
         
-    double evaluate (double x) const override {
-        double val = std::cosh(argument->evaluate(x));
-        if(val > 0.0 - EPSILON && val < 0.0 + EPSILON){
-            throw std::runtime_error("Error divide by 0");
-        }
-        if(val > 1.0 - EPSILON && val < 1.0 + EPSILON) return 1.0;
-        return 1.0 / val;
-    }
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            if(double eval = this->evaluate(1.0) == floor(eval)){
-                return std::make_shared<Constant>(eval);
-            }
-        }
-        return std::make_shared<SecantH>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherTrig = dynamic_cast<SecantH*>(other.get());
-        if(!otherTrig) return false;
-        return argument->isEqual(otherTrig->argument);
-    }
-
-    std::string display() const override{
-        return "sech(" + argument->display() + ")";
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
+    
+    std::string display() const override;
 };
-//csch
-class CosecantH : public Function{
-    std::shared_ptr<Function> argument;
-    public:
-    CosecantH(std::shared_ptr<Function> arg) : argument(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
+// Class for hyperbolic cosecant function (csch(f(x)))
+class CosecantH : public Trigonometric{
+    public:
+    CosecantH(std::shared_ptr<Function> arg) : Trigonometric(arg) {}
         
-    double evaluate (double x) const override {
-        double val = std::sinh(argument->evaluate(x));
-        if(val > 0.0 - EPSILON && val < 0.0 + EPSILON){
-            throw std::runtime_error("Error divide by 0");
-        }
-        if(val > 1.0 - EPSILON && val < 1.0 + EPSILON) return 1.0;
-        return 1.0 / val;
-    }
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            if(double eval = this->evaluate(1.0) == floor(eval)){
-                return std::make_shared<Constant>(eval);
-            }
-        }
-        return std::make_shared<CosecantH>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherTrig = dynamic_cast<CosecantH*>(other.get());
-        if(!otherTrig) return false;
-        return argument->isEqual(otherTrig->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other)const override;
 
-    std::string display() const override{
-        return "csch(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };
-//coth
-class CotangentH : public Function{
-    std::shared_ptr<Function> argument;
-    public:
-    CotangentH(std::shared_ptr<Function> arg) : argument(arg) {}
 
-    std::shared_ptr<Function> getArgument(){
-        return argument;
-    }
-        
-    double evaluate (double x) const override {
-        double val = std::tanh(argument->evaluate(x));
-        if(val > 0.0 - EPSILON && val < 0.0 + EPSILON){
-            throw std::runtime_error("Error divide by 0");
-        }
-        if(val > 1.0 - EPSILON && val < 1.0 + EPSILON) return 1.0;
-        return 1.0 / val;
-    }
+// Class for hyperbolic cotangent function (coth(f(x)))
+class CotangentH : public Trigonometric{
+    public:
+    CotangentH(std::shared_ptr<Function> arg) : Trigonometric(arg) {}
+
+    double evaluate (double x) const override;
 
     std::shared_ptr<Function> derivative() const override;
 
-    std::shared_ptr<Function> simplify() const override{
-        if(auto constant = dynamic_cast<Constant*>(argument.get())){
-            if(double eval = this->evaluate(1.0) == floor(eval)){
-                return std::make_shared<Constant>(eval);
-            }
-        }
-        return std::make_shared<CotangentH>(argument->simplify());
-    }
+    std::shared_ptr<Function> simplify() const override;
 
-    bool isEqual(std::shared_ptr<Function>& other){
-        auto otherTrig = dynamic_cast<CotangentH*>(other.get());
-        if(!otherTrig) return false;
-        return argument->isEqual(otherTrig->argument);
-    }
+    bool isEqual(const std::shared_ptr<Function>& other) const override;
 
-    std::string display() const override{
-        return "coth(" + argument->display() + ")";
-    }
+    std::string display() const override;
 };

@@ -1,12 +1,11 @@
 #include "Functions.h"
 
+//Constant
+
 double Constant::getValue(){
     return value;
 }
 
-double Constant::evaluate(double x) const{
-    return value;
-}
 
 std::shared_ptr<Function> Constant::simplify() const{
     return std::make_shared<Constant>(value);
@@ -24,13 +23,10 @@ std::string Constant::display() const{
     return std::to_string(value);
 }
 
+// Variable
 
 std::string Variable::getName(){
     return name;
-}
-
-double Variable::evaluate(double x) const{
-    return x;
 }
 
 std::shared_ptr<Function> Variable::simplify() const{
@@ -47,13 +43,10 @@ std::string Variable::display() const{
     return name;
 }
 
+// Absolute Value
 
 std::shared_ptr<Function> AbsVal::getArgument(){
     return argument;
-}
-
-double AbsVal::evaluate(double x) const{
-    return std::abs(x);
 }
 
 std::shared_ptr<Function> AbsVal::simplify() const{
@@ -70,15 +63,13 @@ std::string AbsVal::display() const{
     return "| " + argument->display() + " |";
 }
 
+// Polynomial
+
 std::shared_ptr<Function> Polynomial::getCoefficient(){
     return coefficient;
 }
 double Polynomial::getExponent(){
     return exponent;
-}
-
-double Polynomial::evaluate(double x) const{
-    return std::pow(coefficient->evaluate(x), exponent);
 }
     
 std::shared_ptr<Function> Polynomial::simplify() const {
@@ -100,17 +91,14 @@ std::string Polynomial::display() const{
     }
 }
 
+// Logarithmic
+
 std::shared_ptr<Function> Logarithmic::getBase(){
     return base;
 }
 std::shared_ptr<Function> Logarithmic::getArgument(){
     return argument;
-}
-
-double Logarithmic::evaluate (double x) const{
-    return std::log(argument->evaluate(x)) / std::log(base->evaluate(x));
-}
-    
+}    
 
 std::shared_ptr<Function> Logarithmic::simplify() const{
     if(base->isEqual(argument)) return std::make_shared<Constant>(1.0);
@@ -143,16 +131,13 @@ std::string Logarithmic::display() const{
     }
 }
 
+// Exponential
 
 std::shared_ptr<Function> Exponential::getArgument(){
     return argument;
 }
 std::shared_ptr<Function> Exponential::getBase(){
     return base;
-}
-
-double Exponential::evaluate (double x) const{
-    return std::pow(base->evaluate(x), argument->evaluate(x));
 }
 
 std::shared_ptr<Function> Exponential::simplify() const {

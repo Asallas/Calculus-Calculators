@@ -8,10 +8,6 @@ std::shared_ptr<Function> Sum::getRight(){
     return right;
 }
 
-double Sum::evaluate(double x) const{
-    return left->evaluate(x) + right->evaluate(x);
-}
-
 //Add Trig identity checks
 std::shared_ptr<Function> Sum::simplify() const{
     auto simplifiedLeft = left->simplify();
@@ -95,10 +91,6 @@ std::shared_ptr<Function> Product::getRight(){
     return right;
 }
 
-double Product::evaluate(double x) const{
-    return left->evaluate(x) * right->evaluate(x);
-}
-
 std::shared_ptr<Function> Product::simplify() const{
     auto simplifiedLeft = left->simplify();
     auto simplifiedRight = right->simplify();
@@ -138,14 +130,6 @@ std::shared_ptr<Function> Quotient::getLeft(){
 }
 std::shared_ptr<Function> Quotient::getRight(){
     return right;
-}
-
-double Quotient::evaluate(double x) const{
-    double denominator = right->evaluate(0.0);
-    if(denominator == 0.0){
-        throw std::runtime_error("Error divide by 0");
-    }
-    return left->evaluate(x) / denominator;
 }
 
 std::shared_ptr<Function> Quotient::simplify() const{

@@ -83,7 +83,7 @@ std::shared_ptr<Function> Exponential::derivative() const{
 
 // sin(f(X))' = cos(f(x)) * f'(x)
 std::shared_ptr<Function> Sine::derivative() const{
-    return std::make_shared<Product>(std::make_shared<Cosine>(argument), argument->derivative());
+    return std::make_shared<Product>(std::make_shared<Cosine>(this->getArgument()), this->getArgument()->derivative());
 }
 
 // cos(f(x))' = -sin(f(x)) * f'(x)
@@ -116,7 +116,7 @@ std::shared_ptr<Function> Cosecant::derivative() const{
             argument->derivative()));
 }
 
-//cot(f(x))' = -csc(f(x))^2 * f'(x)
+// cot(f(x))' = -csc(f(x))^2 * f'(x)
 std::shared_ptr<Function> Cotangent::derivative() const{
         return std::make_shared<Product>(
             std::make_shared<Constant>(-1.0), 
@@ -124,6 +124,8 @@ std::shared_ptr<Function> Cotangent::derivative() const{
                 std::make_shared<Polynomial>(std::make_shared<Cosecant>(argument), 2.0),
                 argument->derivative()));
     }
+
+// Inverse trig derivatives
 
 // sin^-1(f(x))' = arcsin(f(x))' = f'(x)(1-f(x)^2)^(-1/2) = f'(x)/sqrt(1-f(x)^2)
 std::shared_ptr<Function> Arcsin::derivative() const{
@@ -166,6 +168,8 @@ std::shared_ptr<Function> Arccsc::derivative() const{
     return std::make_shared<Product>(std::make_shared<Constant>(-1.0), 
         std::make_shared<Arcsec>(argument)->derivative());
 }
+
+// Hyperbolic derivatives
 
 // sinh(f(x))' = cosh(f(x)) * f'(x)
 std::shared_ptr<Function> SineH::derivative() const{
